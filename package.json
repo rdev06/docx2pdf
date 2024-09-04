@@ -1,0 +1,39 @@
+{
+  "name": "docx2pdf",
+  "version": "1.0.0",
+  "description": "This service will accept documentId from api of document Microservice and inject data to MS word template",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file=.env index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/rdev06/docx2pdf.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "Microsoft",
+    "word",
+    "docx",
+    "pdf",
+    "template"
+  ],
+  "author": "Roshan Dev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rdev06/docx2pdf/issues"
+  },
+  "homepage": "https://github.com/rdev06/docx2pdf#readme",
+  "dependencies": {
+    "@rdev06/fetch-axios": "github:rdev06/fetch-axios",
+    "docx-templates": "^4.13.0",
+    "ioredis": "^5.4.1",
+    "winax": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5"
+  }
+}

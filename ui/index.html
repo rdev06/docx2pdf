@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate doc </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .form-container {
+            background-color: #e6f7ff;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container h2 {
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group label span {
+            color: red;
+            margin-left: 5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-group textarea {
+            height: 200px;
+        }
+
+        .submit-button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #1890ff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background-color: #40a9ff;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+
+        #authorize-button {
+            width: 195px !important;
+            height: 34px;
+            line-height: 10px;
+            background-color: #ffffff82;
+            border: 2px solid #31cb31;
+            color: #31cb31;
+            font-size: 13px;
+        }
+
+        #close-button {
+            height: 35px;
+            line-height: 15px;
+            background-color: #e0e0e0;
+            color: #858585;
+        }
+
+        #authorize-icon{
+            filter: invert(1) hue-rotate(254deg) brightness(2) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <h3>POST /ms/docx2pdf</h3>
+        <form id="requestForm">
+            <div class="form-group">
+                <label for="x-api-key">x-api-key <span>*</span></label>
+                <div style="display: flex; align-items: center;">
+                    <input type="text" id="x-api-key" name="x-api-key" disabled>
+                    <button type="button" id="authorize-button" class="submit-button" style="margin-left: 10px;">
+                        Authorize <span id="authorize-icon" class="open-lock">&#128275;</span>
+                    </button>
+                    <button type="button" id="close-button" class="submit-button"
+                        style="margin-left: 10px; display: none;">
+                        &#10006;
+                    </button>
+                </div>
+            </div>
+            <div id="error-message2" class="error-message"></div><br />
+            <div class="form-group">
+                <label for="organization-unit">Organization Unit <span>*</span></label>
+                <input type="text" id="organization-unit" name="organization-unit" value="AGP">
+            </div>
+            <div class="form-group">
+                <label for="bussiness-unit">Business Unit <span>*</span></label>
+                <select id="bussiness-unit" name="bussiness-unit">
+                    <option value="">Select...</option>
+                    <option value="AUTO" selected>AUTO</option>
+                    <option value="RETAIL">RETAIL</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="channel">Channel <span>*</span></label>
+                <select id="channel" name="channel">
+                    <option value="">Select...</option>
+                    <option value="WEB" selected>WEB</option>
+                    <option value="MOBILE">MOBILE</option>
+                    <option value="DESKTOP">DESKTOP</option>
+                    <option value="BFF">BFF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="accept-language">Accept Language <span>*</span></label>
+                <input type="text" id="accept-language" name="accept-language" value="EN">
+            </div>
+            <div class="form-group">
+                <label for="source">Source <span>*</span></label>
+                <input type="text" id="source" name="source" value="AGP">
+            </div>
+            <div class="form-group">
+                <label for="json-body">Request Body (JSON)</label>
+                <textarea id="json-body" name="json-body" placeholder='{
+    "templateId": "documentId_12345678-1234-1234-1234-123456789abc",
+    "data": {},
+    "webhook": {
+        "url": ""
+    }
+}'></textarea>
+            </div>
+            <div id="error-message" class="error-message"></div><br /><br />
+            <button type="submit" class="submit-button">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('authorize-button').addEventListener('click', function () {
+            const apiKeyField = document.getElementById('x-api-key');
+            const closeButton = document.getElementById('close-button');
+            const authorizeIcon = document.getElementById('authorize-icon');
+            const errorMessageElement = document.getElementById('error-message2');
+
+            if (apiKeyField.disabled) {
+                apiKeyField.disabled = false;
+                closeButton.style.display = 'inline-block';
+                // authorizeIcon.className = 'close-lock';  
+                // authorizeIcon.textContent = '🔒';
+            } else {
+                if (apiKeyField.value.trim() === '') {
+                    errorMessageElement.textContent = 'Please add the x-api-key';
+                    return;
+                }
+
+                apiKeyField.disabled = true;
+                closeButton.style.display = 'none';
+                authorizeIcon.className = 'locked';
+                authorizeIcon.textContent = '🔒';
+                errorMessageElement.textContent = '';
+            }
+        });
+
+        document.getElementById('close-button').addEventListener('click', function () {
+            const apiKeyField = document.getElementById('x-api-key');
+            const closeButton = document.getElementById('close-button');
+            const authorizeIcon = document.getElementById('authorize-icon');
+
+
+            apiKeyField.disabled = true;
+            apiKeyField.value = '';
+            closeButton.style.display = 'none';
+            authorizeIcon.className = 'open-lock';
+            authorizeIcon.textContent = '🔓';
+        });
+
+        document.getElementById('requestForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const errorMessageElement = document.getElementById('error-message');
+            errorMessageElement.textContent = '';
+
+            const organizationUnit = document.getElementById('organization-unit').value.trim();
+            const businessUnit = document.getElementById('bussiness-unit').value.trim();
+            const channel = document.getElementById('channel').value.trim();
+            const acceptLanguage = document.getElementById('accept-language').value.trim();
+            const source = document.getElementById('source').value.trim();
+            const jsonBody = document.getElementById('json-body').value.trim();
+            const apiKey = document.getElementById('x-api-key').value.trim();
+
+            if (!organizationUnit || !businessUnit || !channel || !acceptLanguage || !source || !apiKey) {
+                errorMessageElement.textContent = 'Please fill out all mandatory fields';
+                return;
+            }
+
+            let parsedJsonBody;
+            try {
+                parsedJsonBody = JSON.parse(jsonBody);
+            } catch (error) {
+                errorMessageElement.textContent = 'Invalid JSON in request body';
+                return;
+            }
+
+            const templateId = parsedJsonBody.templateId;
+            const webhookUrl = parsedJsonBody.webhook?.url;
+
+            if (!templateId) {
+                errorMessageElement.textContent = 'Request body must include "templateId"';
+                return;
+            }
+
+            const payload = {
+                templateId: templateId,
+                data: parsedJsonBody.data || {},
+                webhook: {
+                    url: webhookUrl || "",
+                    method: "post",
+                    headers: {
+                        "x-api-key": apiKey,
+                        "organization-unit": organizationUnit,
+                        "bussiness-unit": businessUnit,
+                        "channel": channel,
+                        "source": source,
+                        "accept-language": acceptLanguage
+                    }
+                }
+            };
+
+            console.log("PAYLOAD---------->", payload);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/ms/docx2pdf", true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+            xhr.responseType = 'blob';
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+
+                        const link = document.createElement('a');
+                        const blob = new Blob([xhr.response], { type: 'application/pdf' });
+                        const url = window.URL.createObjectURL(blob);
+                        link.href = url;
+                        link.download = 'converted.pdf';
+                        link.click();
+
+                        setTimeout(function () {
+                            window.URL.revokeObjectURL(url);
+                        }, 100);
+
+                    } else {
+                        errorMessageElement.textContent = 'Error: ' + xhr.status;
+                    }
+                }
+            };
+
+            xhr.send(JSON.stringify(payload));
+        });
+    </script>
+</body>
+
+</html>
