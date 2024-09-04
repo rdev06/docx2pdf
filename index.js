@@ -2,10 +2,10 @@ import http from 'http';
 import bodyParser from './utils/bodyParser.js';
 import getFileBuffer from './utils/getFileBuffer.js';
 import { handelAsyncSend, sendPdfRightAway } from './utils/pdf.js';
-import {readFileSync} from 'fs';
+import { readFileSync } from 'fs';
 
 
-async function serverHandler(req, res){
+async function serverHandler(req, res) {
   if (req.method === 'GET') {
     if (req.url === '/docx2pdf/docs') {
       res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -19,22 +19,22 @@ async function serverHandler(req, res){
       await bodyParser(req);
       if (req.url === '/ms/docx2pdf') {
         const docxBuffer = await getFileBuffer(req.body, req.headers);
-        if(!req.body.webhook){
-            return sendPdfRightAway(docxBuffer, res);
+        if (!req.body.webhook) {
+          return sendPdfRightAway(docxBuffer, res);
         }
         handelAsyncSend(docxBuffer, req.body.webhook);
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({message: 'Your file will be posted at your given destination'}))
+        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }))
       }
       if (req.url === '/ms/docx2pdf/bulk') {
         // Each request shout have outFile
         const docsBuffers = await Promise.all(req.body.map(rq => getFileBuffer(rq, req.headers)))
 
-        
+
       }
     } catch (error) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({message: error.message}));
+      return res.end(JSON.stringify({ message: error.message }));
     }
   }
   res.writeHead(404, { 'Content-Type': 'application/json' });

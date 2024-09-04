@@ -20,6 +20,6 @@ async function getTemplateBuffer(documentId, useHeaders) {
 
 export default async function (body, headers) {
   const template = await getTemplateBuffer(body.templateId, headers);
-  await parseDataForImage(body.data);
+  await parseDataForImage(body.data, headers);
   return createReport({ template, data: body.data, cmdDelimiter: ['{{', '}}'] });
 }
