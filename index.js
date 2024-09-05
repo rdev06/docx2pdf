@@ -3,21 +3,29 @@ import bodyParser from './utils/bodyParser.js';
 import getFileBuffer from './utils/getFileBuffer.js';
 import { handelAsyncSend, sendPdfRightAway } from './utils/pdf.js';
 import { readFileSync } from 'fs';
-
+import { Worker } from 'worker_threads';
 
 async function processBulkInBackground(payload, headers) {
-  // Each request shout have outFile
-  // Making sure that if any one of that is failed then all will be failed
-  try {
-    const docxBuffers = await Promise.all([...payload.map(async rq => {
-      const docxBuffer = await getFileBuffer(rq, headers);
-      return { docxBuffer, webhook: rq.webhook };
-    })]);
-    // To keep safe all generated files send anyway irespective of failed
-    await Promise.allSettled([...docxBuffers.map(docxBuffer => handelAsyncSend(docxBuffer, docxBuffer.webhook))]);
-  } catch (error) {
-    console.error("Failed while processing bulk", error);
-  }
+  return new Promise((resolve, reject) => {
+    const worker = new Worker('./worker.js');
+
+    worker.on('message', message => {
+      if (message.error) {
+        reject(new Error(message.error));
+      } else if (message.status === 'done') {
+        resolve();
+      }
+    });
+
+    worker.on('error', reject);
+    worker.on('exit', code => {
+      if (code !== 0) {
+        reject(new Error(`Worker stopped with exit code ${code}`));
+      }
+    });
+
+    worker.postMessage({ payload, headers });
+  });
 }
 
 async function serverHandler(req, res) {
@@ -39,17 +47,10 @@ async function serverHandler(req, res) {
         }
         handelAsyncSend(docxBuffer, req.body.webhook);
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }))
+        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }));
       }
       if (req.url === '/ms/docx2pdf/bulk') {
-        /**
-       * Do we need to validate these
-       * Each item in body should contain "webhook"
-       * Payload should be array of object
-       * Individual files needs to be push to respective Webhook
-       */
-        processBulkInBackground(req.body, req.headers);
-
+        await processBulkInBackground(req.body, req.headers);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }));
       }
@@ -64,4 +65,6 @@ async function serverHandler(req, res) {
 
 const HTTP_PORT = 80;
 
-http.createServer(serverHandler).listen(HTTP_PORT, console.log(`Docx2Pdf server is running on port ${HTTP_PORT}`));
+http.createServer(serverHandler).listen(HTTP_PORT, () => {
+  console.log(`Docx2Pdf server is running on port ${HTTP_PORT}`);
+});
