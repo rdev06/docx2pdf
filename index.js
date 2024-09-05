@@ -5,6 +5,21 @@ import { handelAsyncSend, sendPdfRightAway } from './utils/pdf.js';
 import { readFileSync } from 'fs';
 
 
+async function processBulkInBackground(payload, headers) {
+  // Each request shout have outFile
+  // Making sure that if any one of that is failed then all will be failed
+  try {
+    const docxBuffers = await Promise.all([...payload.map(async rq => {
+      const docxBuffer = await getFileBuffer(rq, headers);
+      return { docxBuffer, webhook: rq.webhook };
+    })]);
+    // To keep safe all generated files send anyway irespective of failed
+    await Promise.allSettled([...docxBuffers.map(docxBuffer => handelAsyncSend(docxBuffer, docxBuffer.webhook))]);
+  } catch (error) {
+    console.error("Failed while processing bulk", error);
+  }
+}
+
 async function serverHandler(req, res) {
   if (req.method === 'GET') {
     if (req.url === '/docx2pdf/docs') {
@@ -27,10 +42,16 @@ async function serverHandler(req, res) {
         return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }))
       }
       if (req.url === '/ms/docx2pdf/bulk') {
-        // Each request shout have outFile
-        const docsBuffers = await Promise.all(req.body.map(rq => getFileBuffer(rq, req.headers)))
+        /**
+       * Do we need to validate these
+       * Each item in body should contain "webhook"
+       * Payload should be array of object
+       * Individual files needs to be push to respective Webhook
+       */
+        processBulkInBackground(req.body, req.headers);
 
-
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }));
       }
     } catch (error) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
