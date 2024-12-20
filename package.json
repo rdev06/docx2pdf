@@ -31,7 +31,8 @@
     "@rdev06/fetch-axios": "github:rdev06/fetch-axios",
     "docx-templates": "^4.13.0",
     "ioredis": "^5.4.1",
-    "winax": "^3.5.3"
+    "jszip": "^3.10.1",
+    "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.5"

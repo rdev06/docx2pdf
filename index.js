@@ -1,10 +1,11 @@
 import http from 'http';
 import bodyParser from './utils/bodyParser.js';
-import getFileBuffer from './utils/getFileBuffer.js';
+import {docxFilesBuffer} from './utils/getFilesBuffer.js';
 import { handelAsyncSend, sendPdfRightAway } from './utils/pdf.js';
 import { readFileSync } from 'fs';
 import redisClient from './utils/redisClient.js';
 import { AddJob, AddWorker } from './utils/queue.js';
+import { handleResAction } from './utils/handleAction.js';
 
 const BulkDocTopic = 'BULK_DOCX_PDF_GEN_';
 
@@ -21,13 +22,8 @@ async function serverHandler(req, res) {
     try {
       await bodyParser(req);
       if (req.url === '/ms/docx2pdf') {
-        const docxBuffer = await getFileBuffer(req.body, req.headers);
-        if (!req.body.webhook) {
-          return sendPdfRightAway(docxBuffer, res);
-        }
-        handelAsyncSend(docxBuffer, req.body.webhook);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }));
+        const docxBuffer = await docxFilesBuffer(req.body.toProcess, req.headers);
+        return handleResAction(docxBuffer, req.body, res);
       } else if (req.url === '/ms/docx2pdf/bulk') {
         req.body.forEach((payload) => {
           payload.headers = req.headers;
