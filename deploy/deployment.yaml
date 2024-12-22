@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docx2pdf-api
+  labels:
+    app: docx2pdf-api
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: docx2pdf-api
+  template:
+    metadata:
+      labels:
+        app: docx2pdf-api
+    spec:
+      containers:
+        - name: docx2pdf-api-cont
+          image: 761154074177.dkr.ecr.me-south-1.amazonaws.com/docx2pdf-ms:{BUILD_ID}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "756Mi"
+              cpu: "600m"
+            limits:
+              memory: "1024Mi"
+              cpu: "800m"
+          env:
+            - name: TZ
+              value: Asia/Dubai
+            - name: MAX_REDIS_RETRY
+              value: '5'
+            - name: SHARED_DOC_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: docx-ms
+                  key: SHARED_DOC_MS
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: docx-ms
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: docx-ms
+                  key: REDIS_PORT
+            - name: TOPIC_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: docx-ms
+                  key: TOPIC_PREFIX
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: docx-ms
+                  key: REDIS_PASSWORD
+            - name: MSAL_PDF_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: docx-ms
+                  key: MSAL_PDF_USER
+            - name: MSAL_PDF_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: docx-ms
+                  key: MSAL_PDF_PASS
+
+              
+            
+            
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docx-ms-service
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: docx-ms
+

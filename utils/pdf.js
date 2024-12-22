@@ -1,19 +1,19 @@
 import axios from '@rdev06/fetch-axios';
-const { PDFDocument } = require('pdf-lib');
-import { loginToken } from './useGraph';
+import { PDFDocument } from 'pdf-lib';
+import { loginToken } from './useGraph.js';
 
 const driveId = 'b!3spiVrkLeUWmNjcHKsdY_25LoqM8yrJNvdNDusyyiHoqBJewyqVpQom725_2x3Ao';
-const folderId = '01O3TWBEA6BME55UZBKBE33HBDNVYDHV7F:';
+const folderId = '01O3TWBEA6BME55UZBKBE33HBDNVYDHV7F';
 
 export async function convert2Pdf(buff, fileName) {
-  const ret = await axios.put(`https://graph.microsoft.com/v1.0/drives/:${driveId}/items/:${folderId}/:${fileName}.docx:/content`, buff, {
+  const ret = await axios.put(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${folderId}:/${fileName}.docx:/content`, buff, {
     headers: {
       Authorization: 'Bearer ' + (await loginToken())
     }
   });
 
   // download file now
-  const fileRes = await axios.get(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/:${ret.data.id}/content?format=pdf`, {
+  const fileRes = await axios.get(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${ret.data.id}/content?format=pdf`, {
     responseType: 'arraybuffer',
     headers: {
       Authorization: 'Bearer ' + (await loginToken())

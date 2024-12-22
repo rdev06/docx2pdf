@@ -1,11 +1,10 @@
 import http from 'http';
 import bodyParser from './utils/bodyParser.js';
 import {docxFilesBuffer} from './utils/getFilesBuffer.js';
-import { handelAsyncSend, sendPdfRightAway } from './utils/pdf.js';
 import { readFileSync } from 'fs';
 import redisClient from './utils/redisClient.js';
 import { AddJob, AddWorker } from './utils/queue.js';
-import { handleResAction } from './utils/handleAction.js';
+import { handleResAction, postFile } from './utils/handleAction.js';
 
 const BulkDocTopic = 'BULK_DOCX_PDF_GEN_';
 
@@ -23,25 +22,32 @@ async function serverHandler(req, res) {
       await bodyParser(req);
       if (req.url === '/ms/docx2pdf') {
         const docxBuffer = await docxFilesBuffer(req.body.toProcess, req.headers);
-        return handleResAction(docxBuffer, req.body, res);
+        return await handleResAction(docxBuffer, req.body, res);
       } else if (req.url === '/ms/docx2pdf/bulk') {
-        req.body.forEach((payload) => {
+        const missing = [];
+        for (let i = 0; i < req.body.length; i++) {
+          const payload = req.body[i];
           payload.headers = req.headers;
+          if(!payload.action?.destination){
+            missing.push(i)
+            continue;
+          }
           AddJob(BulkDocTopic, JSON.stringify(payload));
-        });
+        }
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }));
+        return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination', unprocessed: missing }));
       }
     } catch (error) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ message: error.message }));
+      return res.end(JSON.stringify({ message: error.message, error }));
     }
   }
   res.writeHead(404, { 'Content-Type': 'application/json' });
   return res.end(JSON.stringify({ message: 'Not Found' }));
 }
 
-const HTTP_PORT = 80;
+const HTTP_PORT = 8000;
 
 async function main() {
   await redisClient.ping();
@@ -49,8 +55,8 @@ async function main() {
   AddWorker(BulkDocTopic, {
     exec: async (_, payload) => {
       payload = JSON.parse(payload);
-      const docxBuffer = await getFileBuffer(payload, payload.headers);
-      handelAsyncSend(docxBuffer, payload.webhook);
+      const docxBuffer = await docxFilesBuffer(payload, req.headers);
+      postFile(docxBuffer, payload);
     },
     onError: async (_, error) => {
       console.error(error);

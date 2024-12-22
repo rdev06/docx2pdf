@@ -5,7 +5,8 @@ import { getTemplateBuffer } from './utils.js';
 export async function getFileBuffer(body, headers) {
   const template = await getTemplateBuffer(body.templateId, headers);
   await parseDataForImage(body.data, headers);
-  return createReport({ template: template.data, data: body.data, cmdDelimiter: ['{{', '}}'] });
+  const contentBuff = await createReport({ template: template.data, data: body.data, cmdDelimiter: ['{{', '}}'] });
+  return Buffer.from(contentBuff);
 }
 
 export function docxFilesBuffer(toProcess, headers){

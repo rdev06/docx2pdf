@@ -1,0 +1,10 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: docx-ms
+data:
+  SHARED_DOC_MS: http://document-api-service:3000/ms/document
+  REDIS_HOST: '157.175.70.82'
+  REDIS_PORT: '6379'
+  TOPIC_PREFIX: Docx2Pdf_DEV_
+  MSAL_PDF_USER: 62d72cc5-a881-45bd-ac40-1c44ab8c0475

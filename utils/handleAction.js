@@ -14,15 +14,18 @@
 //       postInfo:{
 //         url:'',
 //         method: '',
-//         useFileIdField:''
+//         headers:{},
+//         data:{
+//           useFileIdField:''
+//         }
 //       }
 //     }
 //   }
 // };
 
 import JSZip from 'jszip';
-import { convert2Pdf, mergePDF } from './pdf';
-import { sendFileViaApi, sendFileViaSharepoint } from './utils';
+import { convert2Pdf, mergePDF } from './pdf.js';
+import { sendFileViaApi, sendFileViaSharepoint } from './utils.js';
 
 export async function postFile(docxBuffer, reqBody) {
   if (reqBody.action.output === 'docx') {
@@ -117,7 +120,11 @@ export async function handleResAction(docxBuffer, reqBody, res) {
     return res.end(mergedPDFBuffer);
   }
   // its clear that we need to post the file
-  postFile(docxBuffer, reqBody);
+  const ret = await postFile(docxBuffer, reqBody);
+  const toRespond = { message: 'Your file posted at your given destination' };
+  if(ret.toUse){
+    Object.assign(toRespond, ret)
+  }
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  return res.end(JSON.stringify({ message: 'Your file will be posted at your given destination' }));
+  return res.end(JSON.stringify(toRespond));
 }

@@ -1,5 +1,5 @@
 import axios from '@rdev06/fetch-axios';
-import { uploadFileToSharePoint } from './useGraph';
+import { uploadFileToSharePoint } from './useGraph.js';
 
 
 const useHeaderKeys = ['organization-unit', 'bussiness-unit', 'channel', 'accept-language', 'source', 'accept-encoding'];
@@ -17,7 +17,7 @@ export async function getTemplateBuffer(documentId, useHeaders) {
         headers[k] = useHeaders[k];
     }
     const resp = await axios.get(
-        `${process.env.SHARED_MS_HOST}/ms/document/${documentId}?expiresIn=60&projection={"type":"$document.type"}&preview=true`,
+        `${process.env.SHARED_DOC_MS}/${documentId}?expiresIn=60&projection={"type":"$document.type"}&preview=true`,
         { headers }
     );
     return { data: await getFile(resp.data.location), extension: resp.data?.documnentData?.type } //TODO: Need to check if this key "documnentData" come as we are sending {location, documnentData}
@@ -61,9 +61,11 @@ export async function sendFileViaApi(buf, webhook, fileName) {
 
 
 export async function sendFileViaSharepoint(buff, option, fileName='output.pdf'){
-    const itemid = await uploadFileToSharePoint(buff, option.driveId, option.folderId, fileName);
-    option.postInfo.body = {
-        [option.postInfo.useFileIdField] : itemid
+    const itemId = await uploadFileToSharePoint(buff, option.driveId, option.folderId, fileName);
+    if(!option.postInfo){
+        return {toUse: true, sharepointItemId: itemId};
     }
+    option.postInfo.data[option.postInfo.data.useFileIdField] = itemId;
+    delete option.postInfo.data.useFileIdField;
     return axios(postInfo)
 }
