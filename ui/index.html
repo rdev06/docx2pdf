@@ -195,7 +195,14 @@
         "webhook": {
             "url": "https://shared-ms.agp-dev.com/ms/document",
             "method": "post",
-            //headers will be added once you submit
+            "headers": {
+                    "x-api-key": "API_KEY",
+                    "linked-entity-id": "001FV000003y9YMYAY",
+                    "organization-unit": "AGP",
+                    "bussiness-unit": "AUTO",
+                    "source": "AGP",
+                    "channel": "WEB"
+                },
             "data": {
                 "useFileField": "file",
                 "pathName": "temp",
