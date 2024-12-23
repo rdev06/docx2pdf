@@ -3,7 +3,7 @@ apiVersion: v1
 metadata:
   name: docx-ms
 data:
-  SHARED_DOC_MS: http://document-api-service:3000/ms/document
+  SHARED_DOC_MS: http://document-api-service:80/ms/document
   REDIS_HOST: '157.175.70.82'
   REDIS_PORT: '6379'
   TOPIC_PREFIX: Docx2Pdf_DEV_

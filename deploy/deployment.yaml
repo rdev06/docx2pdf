@@ -86,5 +86,5 @@ spec:
     - port: 8000
       targetPort: 8000
   selector:
-    app: docx-ms
+    app: docx2pdf-api
 
