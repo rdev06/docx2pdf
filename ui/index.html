@@ -156,11 +156,11 @@
     </div>
 
     <script>
-        const placeholder = `{
+        const sampleData = `{
     "toProcess": [
         {
             "templateId": "documentId_628f7983-68a5-4f8f-84c9-fcc77dd14354",
-            "data": {},
+            "data": {"foo": "bar"},
             "name": "Demo"
         }
     ],
@@ -213,7 +213,13 @@
 }`;
 
 
-        document.getElementById("json-body").setAttribute("placeholder",placeholder)
+        const formBody = document.getElementById("json-body")
+        formBody.value = sampleData;
+        // formBody.setAttribute("placeholder", sampleData);
+        // formBody.addEventListener('click', () => {
+        //     formBody.value = sampleData;
+        // })
+
         document.getElementById('authorize-button').addEventListener('click', function () {
             const apiKeyField = document.getElementById('x-api-key');
             const closeButton = document.getElementById('close-button');
